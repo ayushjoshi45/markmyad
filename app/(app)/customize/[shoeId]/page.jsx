@@ -21,6 +21,9 @@ export default function CustomizePage() {
   // Material state
   const [material, setMaterial] = useState("canvas");
 
+  // Loading state (optional but good UX)
+  const [saving, setSaving] = useState(false);
+
   if (!shoe) {
     return <p className="p-6">Shoe not found</p>;
   }
@@ -50,6 +53,45 @@ export default function CustomizePage() {
       </div>
     </div>
   );
+
+  // 🔐 SAVE DESIGN TO DATABASE
+  const saveDesign = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to save your design");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const res = await fetch("/api/designs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          shoeId: shoe.id,
+          colors,
+          material,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save design");
+      }
+
+      alert("✅ Design saved successfully!");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -122,24 +164,19 @@ export default function CustomizePage() {
       {/* Save Button */}
       <div className="mt-12">
         <button
-          className="
+          onClick={saveDesign}
+          disabled={saving}
+          className={`
             bg-black
             text-white
             px-8
             py-2
             rounded
-            hover:bg-gray-900
             transition
-          "
-          onClick={() =>
-            console.log({
-              shoeId: shoe.id,
-              colors,
-              material,
-            })
-          }
+            ${saving ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-900"}
+          `}
         >
-          Save Design
+          {saving ? "Saving..." : "Save Design"}
         </button>
       </div>
     </div>
