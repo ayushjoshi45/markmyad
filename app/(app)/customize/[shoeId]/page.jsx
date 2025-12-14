@@ -30,12 +30,13 @@ export default function CustomizePage() {
   const zoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.6));
   const resetZoom = () => setZoom(1);
 
-  /* ---------- COLOR PICKER ---------- */
+  /* ---------- COLOR PICKER ROW ---------- */
   const ColorRow = ({ label, part }) => (
     <div className="bg-white p-5 rounded-xl shadow-sm">
       <p className="font-semibold mb-3 text-gray-900">{label}</p>
 
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
+        {/* PRESET COLORS */}
         {shoe.options.colors[part].map((color) => (
           <button
             key={color}
@@ -52,6 +53,32 @@ export default function CustomizePage() {
             aria-label={`${label} ${color}`}
           />
         ))}
+
+        {/* 🎨 CUSTOM COLOR PICKER */}
+        <label
+          title="Pick custom color"
+          className={`w-9 h-9 rounded-full border-2 cursor-pointer
+            flex items-center justify-center transition-all
+            ${
+              !shoe.options.colors[part].includes(colors[part])
+                ? "border-black scale-110"
+                : "border-gray-300 hover:scale-105"
+            }`}
+          style={{ backgroundColor: colors[part] }}
+        >
+          <input
+            type="color"
+            value={colors[part]}
+            onChange={(e) =>
+              setColors((prev) => ({
+                ...prev,
+                [part]: e.target.value,
+              }))
+            }
+            className="opacity-0 absolute w-0 h-0"
+          />
+          🎨
+        </label>
       </div>
     </div>
   );
@@ -117,23 +144,18 @@ export default function CustomizePage() {
               <button
                 onClick={zoomIn}
                 className="bg-black text-white w-9 h-9 rounded-full hover:bg-gray-800"
-                title="Zoom In"
               >
                 +
               </button>
-
               <button
                 onClick={zoomOut}
                 className="bg-black text-white w-9 h-9 rounded-full hover:bg-gray-800"
-                title="Zoom Out"
               >
                 −
               </button>
-
               <button
                 onClick={resetZoom}
                 className="bg-gray-200 text-black w-9 h-9 rounded-full hover:bg-gray-300"
-                title="Reset Zoom"
               >
                 ⟳
               </button>
@@ -177,7 +199,7 @@ export default function CustomizePage() {
                            focus:outline-none focus:ring-2 focus:ring-black"
               >
                 {shoe.options.materials.map((mat) => (
-                  <option key={mat} value={mat} className="text-black">
+                  <option key={mat} value={mat}>
                     {mat.charAt(0).toUpperCase() + mat.slice(1)}
                   </option>
                 ))}
