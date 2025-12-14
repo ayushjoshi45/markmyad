@@ -7,33 +7,34 @@ import ShoePreview from "@/app/components/ShoePreview";
 
 export default function CustomizePage() {
   const { shoeId } = useParams();
-
-  // Find selected shoe
   const shoe = shoes.find((s) => s.id === shoeId);
 
-  // Color state
   const [colors, setColors] = useState({
     upper: "#f97316",
     sole: "#000000",
     logo: "#ffffff",
   });
 
-  // Material state
   const [material, setMaterial] = useState("canvas");
-
-  // Loading state (optional but good UX)
   const [saving, setSaving] = useState(false);
+
+  /* 🔍 ZOOM STATE */
+  const [zoom, setZoom] = useState(1);
 
   if (!shoe) {
     return <p className="p-6">Shoe not found</p>;
   }
 
-  // Reusable color swatch row
+  /* ---------- ZOOM CONTROLS ---------- */
+  const zoomIn = () => setZoom((z) => Math.min(z + 0.1, 2));
+  const zoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.6));
+  const resetZoom = () => setZoom(1);
+
+  /* ---------- COLOR PICKER ---------- */
   const ColorRow = ({ label, part }) => (
-    <div>
-      <p className="font-semibold mb-2 text-gray-800">
-        {label}
-      </p>
+    <div className="bg-white p-5 rounded-xl shadow-sm">
+      <p className="font-semibold mb-3 text-gray-900">{label}</p>
+
       <div className="flex gap-3 flex-wrap">
         {shoe.options.colors[part].map((color) => (
           <button
@@ -41,11 +42,12 @@ export default function CustomizePage() {
             onClick={() =>
               setColors((prev) => ({ ...prev, [part]: color }))
             }
-            className={`w-8 h-8 rounded-full border-2 transition ${
-              colors[part] === color
-                ? "border-black scale-110"
-                : "border-gray-300"
-            }`}
+            className={`w-9 h-9 rounded-full border-2 transition-all
+              ${
+                colors[part] === color
+                  ? "border-black scale-110"
+                  : "border-gray-300 hover:scale-105"
+              }`}
             style={{ backgroundColor: color }}
             aria-label={`${label} ${color}`}
           />
@@ -54,7 +56,7 @@ export default function CustomizePage() {
     </div>
   );
 
-  // 🔐 SAVE DESIGN TO DATABASE
+  /* ---------- SAVE DESIGN ---------- */
   const saveDesign = async () => {
     const token = localStorage.getItem("token");
 
@@ -80,10 +82,7 @@ export default function CustomizePage() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to save design");
-      }
+      if (!res.ok) throw new Error(data.error);
 
       alert("✅ Design saved successfully!");
     } catch (error) {
@@ -94,90 +93,118 @@ export default function CustomizePage() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Title */}
-      <h1 className="text-3xl font-bold mb-8">
-        Customize {shoe.name}
-      </h1>
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-7xl mx-auto px-6">
 
-      {/* Preview */}
-      <div className="border rounded-xl p-6 bg-gray-200 mb-10 flex justify-center">
-        <ShoePreview
-          shoe={shoe}
-          colors={colors}
-          material={material}
-        />
-      </div>
-
-      {/* Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Color Controls */}
-        <div className="space-y-6">
-          <ColorRow label="Upper Color" part="upper" />
-          <ColorRow label="Sole Color" part="sole" />
-          <ColorRow label="Logo Color" part="logo" />
-        </div>
-
-        {/* Material Selector */}
-        <div>
-          <label className="block font-semibold mb-2 text-gray-800">
-            Material
-          </label>
-
-          <select
-            value={material}
-            onChange={(e) => setMaterial(e.target.value)}
-            className="
-              w-full
-              border
-              border-gray-300
-              rounded
-              px-4
-              py-2
-              bg-white
-              text-gray-900
-              focus:outline-none
-              focus:ring-2
-              focus:ring-black
-            "
-          >
-            {shoe.options.materials.map((mat) => (
-              <option
-                key={mat}
-                value={mat}
-                className="bg-white text-gray-900"
-              >
-                {mat.charAt(0).toUpperCase() + mat.slice(1)}
-              </option>
-            ))}
-          </select>
-
-          {/* Helper text */}
-          <p className="text-sm text-gray-600 mt-2">
-            {material === "canvas"
-              ? "Canvas gives a matte, casual look"
-              : "Leather gives a smooth, premium finish"}
+        {/* TITLE */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-extrabold text-gray-900">
+            Customize <span className="text-orange-500">{shoe.name}</span>
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Choose colors and materials to create your sneaker
           </p>
         </div>
-      </div>
 
-      {/* Save Button */}
-      <div className="mt-12">
-        <button
-          onClick={saveDesign}
-          disabled={saving}
-          className={`
-            bg-black
-            text-white
-            px-8
-            py-2
-            rounded
-            transition
-            ${saving ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-900"}
-          `}
-        >
-          {saving ? "Saving..." : "Save Design"}
-        </button>
+        {/* MAIN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+          {/* 🔍 PREVIEW WITH ZOOM */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
+
+            {/* ZOOM BUTTONS */}
+            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+              <button
+                onClick={zoomIn}
+                className="bg-black text-white w-9 h-9 rounded-full hover:bg-gray-800"
+                title="Zoom In"
+              >
+                +
+              </button>
+
+              <button
+                onClick={zoomOut}
+                className="bg-black text-white w-9 h-9 rounded-full hover:bg-gray-800"
+                title="Zoom Out"
+              >
+                −
+              </button>
+
+              <button
+                onClick={resetZoom}
+                className="bg-gray-200 text-black w-9 h-9 rounded-full hover:bg-gray-300"
+                title="Reset Zoom"
+              >
+                ⟳
+              </button>
+            </div>
+
+            {/* PREVIEW CANVAS */}
+            <div className="flex items-center justify-center h-[400px]">
+              <div
+                className="transition-transform duration-300 ease-out"
+                style={{ transform: `scale(${zoom})` }}
+                onWheel={(e) => {
+                  if (e.deltaY < 0) zoomIn();
+                  else zoomOut();
+                }}
+              >
+                <ShoePreview
+                  shoe={shoe}
+                  colors={colors}
+                  material={material}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 🎛️ CONTROLS */}
+          <div className="space-y-6">
+            <ColorRow label="Upper Color" part="upper" />
+            <ColorRow label="Sole Color" part="sole" />
+            <ColorRow label="Logo Color" part="logo" />
+
+            {/* MATERIAL */}
+            <div className="bg-white p-5 rounded-xl shadow-sm">
+              <label className="block font-semibold mb-2 text-gray-900">
+                Material
+              </label>
+
+              <select
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg text-black px-4 py-2
+                           focus:outline-none focus:ring-2 focus:ring-black"
+              >
+                {shoe.options.materials.map((mat) => (
+                  <option key={mat} value={mat} className="text-black">
+                    {mat.charAt(0).toUpperCase() + mat.slice(1)}
+                  </option>
+                ))}
+              </select>
+
+              <p className="text-sm text-gray-600 mt-2">
+                {material === "canvas"
+                  ? "Canvas gives a matte, casual look"
+                  : "Leather gives a smooth, premium finish"}
+              </p>
+            </div>
+
+            {/* SAVE */}
+            <button
+              onClick={saveDesign}
+              disabled={saving}
+              className={`w-full py-3 rounded-xl font-semibold text-white
+                ${
+                  saving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-black hover:bg-gray-900"
+                } transition`}
+            >
+              {saving ? "Saving..." : "Save Design"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

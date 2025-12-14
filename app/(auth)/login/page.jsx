@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setError("");
@@ -19,6 +20,8 @@ export default function LoginPage() {
     }
 
     try {
+      setLoading(true);
+
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -36,62 +39,80 @@ export default function LoginPage() {
       router.push("/home");
     } catch {
       setError("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="w-[380px] bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-gray-800 px-4">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 sm:p-10">
         
         {/* Brand */}
-        <h1 className="text-3xl font-extrabold text-black text-center">
-          Sneaker Studio
-        </h1>
-        <p className="text-black text-center text-sm mt-2 mb-8">
-          Design sneakers your way
-        </p>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold text-black">
+            Sneaker<span className="text-orange-500">Studio</span>
+          </h1>
+          <p className="text-gray-600 text-sm mt-2">
+            Design sneakers your way
+          </p>
+        </div>
 
         {/* Error */}
         {error && (
-          <div className="bg-red-100 text-red-700 text-sm p-2 rounded mb-4 text-center">
+          <div className="bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-5 text-center">
             {error}
           </div>
         )}
 
         {/* Email */}
-        <label className="text-sm font-semibold text-black">
-          Email
-        </label>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          className="w-full border border-gray-300 p-3 rounded-lg mb-4 mt-1 text-black focus:outline-none focus:ring-2 focus:ring-black"
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div className="mb-5">
+          <label className="text-sm font-semibold text-gray-800">
+            Email address
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-3 rounded-xl mt-1
+                       text-black focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
 
         {/* Password */}
-        <label className="text-sm font-semibold text-black">
-          Password
-        </label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          className="w-full border border-gray-300 p-3 rounded-lg mb-6 mt-1 text-black focus:outline-none focus:ring-2 focus:ring-black"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="mb-6">
+          <label className="text-sm font-semibold text-gray-800">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-3 rounded-xl mt-1
+                       text-black focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
 
         {/* Button */}
         <button
           onClick={handleLogin}
-          className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition"
+          disabled={loading}
+          className={`w-full py-3 rounded-xl font-semibold text-white transition
+            ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-900"
+            }`}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         {/* Footer */}
-        <p className="text-sm text-black text-center mt-6">
+        <p className="text-sm text-gray-700 text-center mt-6">
           Don’t have an account?{" "}
-          <Link href="/signup" className="font-semibold underline">
+          <Link href="/signup" className="font-semibold text-black underline">
             Sign up
           </Link>
         </p>
