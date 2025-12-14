@@ -17,7 +17,7 @@ export default function Navbar() {
 
       <div className="flex gap-6">
         <Link href="/home">Home</Link>
-        <Link href="/customize">Customize</Link>
+        <Link href="/customize/1">Customize</Link>
         <Link href="/my-designs">My Designs</Link>
         <button onClick={logout} className="text-red-400">
           Logout
